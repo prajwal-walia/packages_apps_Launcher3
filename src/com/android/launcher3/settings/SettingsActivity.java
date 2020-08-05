@@ -22,6 +22,8 @@ import static com.android.launcher3.states.RotationHelper.ALLOW_ROTATION_PREFERE
 
 import static com.android.launcher3.OverlayCallbackImpl.KEY_ENABLE_MINUS_ONE;
 
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -51,6 +53,8 @@ import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherFiles;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
+import com.android.launcher3.lineage.icon.IconPackStore;
+import com.android.launcher3.lineage.icon.IconPackSettingsActivity;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.model.WidgetsModel;
 import com.android.launcher3.states.RotationHelper;
@@ -74,6 +78,8 @@ public class SettingsActivity extends FragmentActivity
     private static final String FLAGS_PREFERENCE_KEY = "flag_toggler";
 
     private static final String NOTIFICATION_DOTS_PREFERENCE_KEY = "pref_icon_badging";
+
+    public static final String KEY_ICON_PACK = "pref_icon_pack";
 
     public static final String EXTRA_FRAGMENT_ARG_KEY = ":settings:fragment_args_key";
     public static final String EXTRA_SHOW_FRAGMENT_ARGS = ":settings:show_fragment_args";
@@ -140,7 +146,7 @@ public class SettingsActivity extends FragmentActivity
     }
 
     @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) { }
+    public void onSharedPreferenceChanged(SharedPreferences prefs, String key) { }
 
     private boolean startPreference(String fragment, Bundle args, String key) {
         if (Utilities.ATLEAST_P && getSupportFragmentManager().isStateSaved()) {
@@ -186,7 +192,8 @@ public class SettingsActivity extends FragmentActivity
     /**
      * This fragment shows the launcher preferences.
      */
-    public static class LauncherSettingsFragment extends PreferenceFragmentCompat {
+    public static class LauncherSettingsFragment extends PreferenceFragmentCompat implements
+        SharedPreferences.OnSharedPreferenceChangeListener {
 
         private String mHighLightKey;
         private boolean mPreferenceHighlighted = false;
@@ -210,7 +217,31 @@ public class SettingsActivity extends FragmentActivity
 
             getPreferenceManager().setSharedPreferencesName(LauncherFiles.SHARED_PREFERENCES_KEY);
             setPreferencesFromResource(R.xml.launcher_preferences, rootKey);
+            updatePreferences();
 
+            Utilities.getPrefs(getContext())
+                    .registerOnSharedPreferenceChangeListener(this);
+        }
+
+        @Override
+        public void onDestroyView () {
+            Utilities.getPrefs(getContext())
+                .unregisterOnSharedPreferenceChangeListener(this);
+            super.onDestroyView();
+        }
+
+        private void setupIconPackPreference(Preference preference) {
+            final Context context = getContext();
+            final String defaultLabel = context.getString(R.string.icon_pack_default_label);
+            final String pkgLabel = new IconPackStore(context).getCurrentLabel(defaultLabel);
+            preference.setSummary(pkgLabel);
+            preference.setOnPreferenceClickListener(p -> {
+                startActivity(new Intent(getActivity(), IconPackSettingsActivity.class));
+                return true;
+            });
+        }
+
+        private void updatePreferences() {
             PreferenceScreen screen = getPreferenceScreen();
             for (int i = screen.getPreferenceCount() - 1; i >= 0; i--) {
                 Preference preference = screen.getPreference(i);
@@ -223,6 +254,7 @@ public class SettingsActivity extends FragmentActivity
                 getActivity().setTitle(getPreferenceScreen().getTitle());
             }
         }
+        
 
         @Override
         public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -245,6 +277,15 @@ public class SettingsActivity extends FragmentActivity
             outState.putBoolean(SAVE_HIGHLIGHTED_KEY, mPreferenceHighlighted);
         }
 
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+            switch (key) {
+                case IconPackStore.KEY_ICON_PACK:
+                    updatePreferences();
+                    break;
+            }
+        }
+
         protected String getParentKeyForPref(String key) {
             return null;
         }
@@ -257,6 +298,10 @@ public class SettingsActivity extends FragmentActivity
             switch (preference.getKey()) {
                 case NOTIFICATION_DOTS_PREFERENCE_KEY:
                     return !WidgetsModel.GO_DISABLE_NOTIFICATION_DOTS;
+
+                case KEY_ICON_PACK:
+                    setupIconPackPreference(preference);
+                    return true;
 
                 case ALLOW_ROTATION_PREFERENCE_KEY:
                     DeviceProfile deviceProfile = InvariantDeviceProfile.INSTANCE.get(
