@@ -80,7 +80,7 @@
 
     </androidx.preference.PreferenceScreen>
 
-    <androidx.preference.PreferenceScreen
+    <Preference
         android:key="pref_developer_options"
         android:persistent="false"
         android:title="Developer Options"
