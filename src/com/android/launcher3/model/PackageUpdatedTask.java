@@ -378,4 +378,8 @@ public class PackageUpdatedTask extends BaseModelUpdateTask {
         }
         return false;
     }
+
+    private boolean isTargetPackage(String packageName) {
+        return packageName.equals(Utilities.GSA_PACKAGE);
+    }
 }
