@@ -11,10 +11,15 @@
 
     <ImageView
         android:id="@+id/g_icon"
-        android:layout_width="wrap_content"
+        android:layout_width="@dimen/qsb_icon_width"
         android:layout_height="wrap_content"
         android:layout_gravity="start|center"
-        android:layout_marginStart="@dimen/qsb_g_icon_marginStart"
+        android:clipToPadding="false"
+        android:clickable="true"
+        android:focusable="false"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:padding="@dimen/qsb_icon_padding"
+        android:scaleType="fitCenter"
         android:src="@drawable/ic_super_g_color" />
 
     <LinearLayout
@@ -28,7 +33,8 @@
         <com.android.launcher3.qsb.AssistantIconView
             android:id="@+id/mic_icon"
             android:layout_width="@dimen/qsb_mic_width"
-            android:layout_height="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:background="?android:selectableItemBackgroundBorderless"
             android:clickable="true"
             android:contentDescription="@string/label_voice_search"
@@ -37,7 +43,8 @@
         <ImageButton
             android:id="@+id/lens_icon"
             android:layout_width="@dimen/qsb_lens_width"
-            android:layout_height="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:layout_marginEnd="@dimen/qsb_lens_marginEnd"
             android:background="?android:selectableItemBackgroundBorderless"
             android:clickable="true"

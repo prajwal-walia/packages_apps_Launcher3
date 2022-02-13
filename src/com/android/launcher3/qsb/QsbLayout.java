@@ -46,6 +46,31 @@ public class QsbLayout extends FrameLayout {
         if (Utilities.isGSAEnabled(mContext)) {
             setupLensIcon();
         }
+        setupGIcon();
+        setupLensIcon();
+    }
+
+    private void clipIconRipples() {
+        float cornerRadius = getCornerRadius();
+        PaintDrawable pd = new PaintDrawable(Color.TRANSPARENT);
+        pd.setCornerRadius(cornerRadius);
+        micIcon.setClipToOutline(cornerRadius > 0);
+        micIcon.setBackground(pd);
+        lensIcon.setClipToOutline(cornerRadius > 0);
+        lensIcon.setBackground(pd);
+        gIcon.setClipToOutline(cornerRadius > 0);
+        gIcon.setBackground(pd);
+    }
+
+    private void setUpBackground() {
+        float cornerRadius = getCornerRadius();
+        int color = Themes.getAttrColor(mContext, R.attr.qsbFillColor);
+        if (Utilities.isThemedIconsEnabled(mContext))
+            color = Themes.getColorBackgroundFloating(mContext);
+        PaintDrawable pd = new PaintDrawable(color);
+        pd.setCornerRadius(cornerRadius);
+        inner.setClipToOutline(cornerRadius > 0);
+        inner.setBackground(pd);
     }
 
     @Override
@@ -65,6 +90,22 @@ public class QsbLayout extends FrameLayout {
                 measureChildWithMargins(child, widthMeasureSpec, 0, heightMeasureSpec, 0);
             }
         }
+    }
+
+    private void setUpMainSearch() {
+        String searchPackage = QsbContainerView.getSearchWidgetPackageName(mContext);
+        setOnClickListener(view -> {
+            mContext.startActivity(new Intent("android.search.action.GLOBAL_SEARCH").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
+                Intent.FLAG_ACTIVITY_CLEAR_TASK).setPackage(searchPackage));
+        });
+    }
+
+    private void setupGIcon() {
+        Intent intent = mContext.getPackageManager().getLaunchIntentForPackage(Utilities.GSA_PACKAGE);
+        intent.addCategory(Intent.CATEGORY_LAUNCHER);
+        gIcon.setOnClickListener(view -> {
+            mContext.startActivity(intent);
+        });
     }
 
     private void setupLensIcon() {
