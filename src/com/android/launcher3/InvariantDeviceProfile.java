@@ -47,6 +47,7 @@ import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.android.launcher3.lineage.icon.IconPackStore;
 import com.android.launcher3.model.DeviceGridState;
 import com.android.launcher3.provider.RestoreDbTask;
 import com.android.launcher3.util.DisplayController;
@@ -116,6 +117,7 @@ public class InvariantDeviceProfile implements SharedPreferences.OnSharedPrefere
     public int numFolderColumns;
     public float[] iconSize;
     public float[] iconTextSize;
+    public String iconPack;
     public int iconBitmapSize;
     public int fillResIconDpi;
     public @DeviceType int deviceType;
@@ -196,16 +198,23 @@ public class InvariantDeviceProfile implements SharedPreferences.OnSharedPrefere
     }
 
     @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (DeviceProfile.KEY_PHONE_TASKBAR.equals(key)) {
-            // Create the illusion of this taking effect immediately
-            // Also needed because TaskbarManager inits before SystemUiProxy on start
-            boolean enabled = Utilities.getPrefs(mContext).getBoolean(DeviceProfile.KEY_PHONE_TASKBAR, false);
-            SystemUiProxy.INSTANCE.get(mContext).setTaskbarEnabled(enabled);
+    public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+        switch (key) {
+            case IconPackStore.KEY_ICON_PACK:
+                onConfigChanged(mContext);
+                break;
+            case DeviceProfile.KEY_PHONE_TASKBAR:
+                // Create the illusion of this taking effect immediately
+                // Also needed because TaskbarManager inits before SystemUiProxy on start
+                boolean enabled = Utilities.getPrefs(mContext).getBoolean(DeviceProfile.KEY_PHONE_TASKBAR, false);
+                SystemUiProxy.INSTANCE.get(mContext).setTaskbarEnabled(enabled);
 
-            onConfigChanged(mContext, true);
-        } else if (DeviceProfile.KEY_PHONE_OVERVIEW_GRID.equals(key)) {
-            onConfigChanged(mContext, false);
+                onConfigChanged(mContext, true);
+                break;
+            case DeviceProfile.KEY_PHONE_OVERVIEW_GRID:
+                onConfigChanged(mContext, false);
+                break;
+
         }
     }
 
@@ -336,6 +345,7 @@ public class InvariantDeviceProfile implements SharedPreferences.OnSharedPrefere
         for (int i = 1; i < iconSize.length; i++) {
             maxIconSize = Math.max(maxIconSize, iconSize[i]);
         }
+        iconPack = new IconPackStore(context).getCurrent();
         iconBitmapSize = ResourceUtils.pxFromDp(maxIconSize, metrics);
         fillResIconDpi = getLauncherIconDensity(iconBitmapSize);
 
@@ -413,7 +423,7 @@ public class InvariantDeviceProfile implements SharedPreferences.OnSharedPrefere
 
     private Object[] toModelState() {
         return new Object[]{
-                numColumns, numRows, numDatabaseHotseatIcons, iconBitmapSize, fillResIconDpi,
+                numColumns, numRows, numDatabaseHotseatIcons, iconPack, iconBitmapSize, fillResIconDpi,
                 numDatabaseAllAppsColumns, dbFile};
     }
 
