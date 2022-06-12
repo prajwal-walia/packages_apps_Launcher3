@@ -362,6 +362,15 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
             public void onClearAllTasksRequested() {
                 endLiveTileMode(TaskOverlay.this::clearAllTasks);
             }
+        
+         @Override
+            public void onLens() {
+                if (mIsAllowedByPolicy) {
+                    endLiveTileMode(() -> mImageApi.startLensActivity());
+                } else {
+                    showBlockedByPolicyMessage();
+                }
+            }
         }
     }
 
@@ -376,6 +385,10 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
         /** User wants to start split screen with current app. */
         void onSplit();
 
+<<<<<<< HEAD
         void onClearAllTasksRequested();
+=======
+        void onLens();
+>>>>>>> 9dee0f21b5... Launcher3: Add Google Lens scan button to the recent apps
     }
 }
